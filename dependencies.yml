@@ -6,6 +6,11 @@ nsx_rhel_dep:
   - python-mako
   - python-netaddr
   - python-six
+  - python-beaker
+  - libyaml
+  - python-markupsafe
+  - python-paste
+  - python-tempita
   - gperftools-libs
   - libunwind
   - yum-utils
@@ -26,6 +31,9 @@ nsx_rhel_dep:
   - glibc.i686
   - nspr
   - vim-common
+  - libvirt
+  - libvirt-python 
+  - virt-install
 #  - qemu-kvm
 
 nodes_root_password: VMware1!
