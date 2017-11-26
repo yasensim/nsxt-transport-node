@@ -1,0 +1,53 @@
+---
+- name: Print out info
+  hosts: nsxtransportnodes:children
+  gather_facts: True
+  vars_files:
+    - ../dependencies.yml
+  tasks:
+#    - debug: var=ansible_kernel
+    - debug: var=ansible_nodename
+    - debug: var=ansible_distribution
+#    - name: install nsx dependencies
+#      package:
+#        name: "{{ item }}"
+#        state: present
+#      with_items: "{{ nsx_rhel_dep }}"
+#      when: ansible_distribution == 'RedHat'
+    - debug: var=ansible_distribution_version
+    - name: retrieve the SHA-256 thumbprint from nodes
+      command: bash -c "awk '{print $2}' /etc/ssh/ssh_host_rsa_key.pub | base64 -d | sha256sum -b | sed 's/ .*$//' | xxd -r -p | base64"
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'Ubuntu'
+      register: thumbprint
+    - debug: var=thumbprint
+    - name: Check if node is registered
+      command: nsxcli -c get node-uuid
+      failed_when: false
+      register: nodeuuid
+    - debug: msg="{{ nodeuuid.stdout }} and {{thumbprint.stdout}}"
+    - name: Ensure libvirtd is running
+      service:
+        name: libvirtd
+        state: started
+        enabled: yes
+
+
+
+#    - name: Create switchport in NSX
+#      uri:
+#        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/logical-ports
+#        method: POST
+#        user: admin
+#        password: "{{ hostvars.nsxmanager.password }}"
+#        headers:
+#          Content-Type: "application/json"
+#        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif-{{ mac.stdout }}\"}, \"admin_state\": \"UP\" }"
+#        force_basic_auth: yes
+#        validate_certs: no
+#        status_code: 201
+#        body_format: json
+#      ignore_errors: True
+
+
+
+
