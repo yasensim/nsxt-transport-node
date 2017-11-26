@@ -33,20 +33,36 @@
 
 
 
-#    - name: Create switchport in NSX
-#      uri:
-#        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/logical-ports
-#        method: POST
-#        user: admin
-#        password: "{{ hostvars.nsxmanager.password }}"
-#        headers:
-#          Content-Type: "application/json"
-#        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif-{{ mac.stdout }}\"}, \"admin_state\": \"UP\" }"
-#        force_basic_auth: yes
-#        validate_certs: no
-#        status_code: 201
-#        body_format: json
-#      ignore_errors: True
+    - name: Create switchport in NSX
+      uri:
+        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/fabric/nodes
+        method: POST
+        user: admin
+        password: "{{ hostvars.nsxmanager.password }}"
+        headers:
+          Content-Type: "application/json"
+        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif-{{ mac.stdout }}\"}, \"admin_state\": \"UP\" }"
+
+{
+    "resource_type" : "HostNode",
+    "display_name" : "{{ ansible_nodename }}",
+    "ip_addresses" : [ "10.29.12.198" ],
+    "os_type" : "RHELKVM",
+    "os_version" : "{{ ansible_distribution_version }}",
+    "host_credential": {
+	"username": "root",
+	"password": "{{ nodes_root_password }}",
+	"thumbprint": "{{ thumbprint.stdout }}"
+    }
+}
+
+
+
+        force_basic_auth: yes
+        validate_certs: no
+        status_code: 201
+        body_format: json
+      ignore_errors: True
 
 
 

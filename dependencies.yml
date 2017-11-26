@@ -27,3 +27,5 @@ nsx_rhel_dep:
   - nspr
   - vim-common
 #  - qemu-kvm
+
+nodes_root_password: VMware1!
