@@ -8,12 +8,12 @@
 #    - debug: var=ansible_kernel
     - debug: var=ansible_nodename
     - debug: var=ansible_distribution
-#    - name: install nsx dependencies
-#      package:
-#        name: "{{ item }}"
-#        state: present
-#      with_items: "{{ nsx_rhel_dep }}"
-#      when: ansible_distribution == 'RedHat'
+    - name: install nsx dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ nsx_rhel_dep }}"
+      when: ansible_distribution == 'RedHat'
     - debug: var=ansible_distribution_version
     - name: retrieve the SHA-256 thumbprint from nodes
       command: bash -c "awk '{print $2}' /etc/ssh/ssh_host_rsa_key.pub | base64 -d | sha256sum -b | sed 's/ .*$//' | xxd -r -p | base64"
@@ -30,10 +30,7 @@
         name: libvirtd
         state: started
         enabled: yes
-
-
-
-    - name: Create switchport in NSX
+    - name: Install NSX kernel modules
       uri:
         url: https://{{ hostvars.nsxmanager.ip }}/api/v1/fabric/nodes
         method: POST
@@ -41,29 +38,58 @@
         password: "{{ hostvars.nsxmanager.password }}"
         headers:
           Content-Type: "application/json"
-        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif-{{ mac.stdout }}\"}, \"admin_state\": \"UP\" }"
-
-{
-    "resource_type" : "HostNode",
-    "display_name" : "{{ ansible_nodename }}",
-    "ip_addresses" : [ "10.29.12.198" ],
-    "os_type" : "RHELKVM",
-    "os_version" : "{{ ansible_distribution_version }}",
-    "host_credential": {
-	"username": "root",
-	"password": "{{ nodes_root_password }}",
-	"thumbprint": "{{ thumbprint.stdout }}"
-    }
-}
-
-
-
+        body: "{ \"resource_type\" : \"HostNode\", \"display_name\" : \"{{ ansible_nodename }}\", \"ip_addresses\" : [ \"{{ ansible_ssh_host }}\" ], \"os_type\" : \"RHELKVM\", \"os_version\" : \"{{ ansible_distribution_version }}\", \"host_credential\": { \"username\": \"root\", \"password\": \"{{ nodes_root_password }}\", \"thumbprint\": \"{{ thumbprint.stdout }}\" } }"
         force_basic_auth: yes
         validate_certs: no
         status_code: 201
         body_format: json
       ignore_errors: True
 
+    - name: Add node as NSX transport node
+      uri:
+        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/transport-nodes
+        method: POST
+        user: admin
+        password: "{{ hostvars.nsxmanager.password }}"
+        headers:
+          Content-Type: "application/json"
+        body: "{ \"resource_type\" : \"HostNode\", \"display_name\" : \"{{ ansible_nodename }}\", \"ip_addresses\" : [ \"{{ ansible_ssh_host }}\" ], \"os_type\" : \"RHELKVM\", \"os_version\" : \"{{ ansible_distribution_version }}\", \"host_credential\": { \"username\": \"root\", \"password\": \"{{ nodes_root_password }}\", \"thumbprint\": \"{{ thumbprint.stdout }}\" } }"
+
+{
+    "resource_type" : "TransportNode",
+    "description" : "",
+    "display_name" : "osnode3",
+    "tags" : [ ],
+    "host_switch_spec" : {
+      "resource_type" : "StandardHostSwitchSpec",
+      "host_switches" : [ {
+        "host_switch_profile_ids" : [ {
+          "value" : "5022fdae-2d89-4f3d-9379-42dee6ff7048",
+          "key" : "UplinkHostSwitchProfile"
+        }, {
+          "value" : "9e0b4d2d-d155-4b4b-8947-fbfe5b79f7cb",
+          "key" : "LldpHostSwitchProfile"
+        } ],
+        "host_switch_name" : "hs1",
+        "pnics" : [ {
+          "device_name" : "ens192",
+          "uplink_name" : "uplink-1"
+        }, {
+          "device_name" : "ens224",
+          "uplink_name" : "uplink-2"
+        } ],
+        "ip_assignment_spec" : {
+          "resource_type" : "StaticIpPoolSpec",
+          "ip_pool_id" : "2c08886d-2c15-445e-b5c0-b4d181c00644"
+        }
+      } ]
+    }
+
+        force_basic_auth: yes
+        validate_certs: no
+        status_code: 201
+        body_format: json
+      ignore_errors: True
 
 
 

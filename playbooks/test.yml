@@ -1,0 +1,11 @@
+---
+- name: Print out info
+  hosts: nsxtransportnodes:children
+  gather_facts: True
+  vars_files:
+    - ../dependencies.yml
+  tasks:
+#    - debug: var=ansible_kernel
+    - debug: var=ansible_nodename
+    - debug: var=ansible_distribution
+    - debug: var=ansible_ssh_host
