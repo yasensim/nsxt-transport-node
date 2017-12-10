@@ -1,4 +1,5 @@
 nsx_rhel_dep:
+  - tcpdump
   - boost-filesystem
   - PyYAML
   - boost-iostreams
@@ -13,6 +14,8 @@ nsx_rhel_dep:
   - python-tempita
   - gperftools-libs
   - libunwind
+  - snappy
+  - boost-date-time
   - yum-utils
   - wget
   - net-tools
