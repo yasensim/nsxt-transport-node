@@ -35,8 +35,9 @@ nsx_rhel_dep:
   - nspr
   - vim-common
   - libvirt
+  - libvirt-daemon-driver-qemu
   - libvirt-python 
   - virt-install
-#  - qemu-kvm
+  - qemu-kvm
 
 nodes_root_password: VMware1!
